@@ -1,264 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <base target="_top">
-  <title>Smart Email Reply</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Email Reply — Automated AI Gmail Assistant</title>
   <style>
-    body { margin: 0; background: #0b1120; color: #f1f5f9; font-family: system-ui, -apple-system, sans-serif; }
-    .wrap { max-width: 780px; margin: 36px auto; padding: 0 20px 60px; }
-    .top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #23304d; padding-bottom: 18px; margin-bottom: 24px; }
-    h1 { margin: 0; font-size: 1.5rem; }
-    .sub { color: #94a3b8; font-size: 0.88rem; margin-top: 4px; }
-    .card { background: #131c31; border: 1px solid #23304d; border-radius: 12px; padding: 22px; margin-bottom: 18px; }
-    .card h2 { margin: 0 0 14px; font-size: 1.05rem; color: #e2e8f0; }
-    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    label { display: block; font-size: 0.84rem; font-weight: 600; color: #94a3b8; margin-bottom: 6px; }
-    input[type=text], input[type=password], input[type=number], select, textarea {
-      width: 100%; box-sizing: border-box; background: #0b1120; border: 1px solid #23304d;
-      color: #f1f5f9; padding: 10px 12px; border-radius: 8px; font-size: 0.92rem; font-family: inherit;
-    }
-    textarea { min-height: 90px; resize: vertical; }
-    .checks { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; }
-    .checks label { display: flex; align-items: center; gap: 6px; color: #f1f5f9; font-weight: 500; cursor: pointer; }
-    .btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
-    button { background: #3b82f6; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-    button:hover { background: #2563eb; }
-    button.sec { background: #1e293b; border: 1px solid #23304d; }
-    button.ok { background: #10b981; color: #052e16; }
-    button.bad { background: #ef4444; }
-    .pill { padding: 5px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; }
-    .pill.on { background: rgba(16,185,129,0.15); color: #10b981; }
-    .pill.off { background: rgba(239,68,68,0.15); color: #ef4444; }
-    .box { background: #0b1120; border: 1px solid #23304d; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-    .preview { background: #131c31; padding: 10px; border-radius: 6px; font-size: 0.85rem; white-space: pre-wrap; margin: 8px 0; color: #cbd5e1; }
-    ul { list-style: none; padding: 0; margin: 0; font-size: 0.84rem; color: #94a3b8; max-height: 200px; overflow-y: auto; }
-    li { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    #msg { position: fixed; bottom: 20px; right: 20px; background: #1e293b; border: 1px solid #3b82f6; padding: 12px 16px; border-radius: 8px; display: none; }
+    body { font-family: Arial, sans-serif; max-width: 720px; margin: 50px auto; padding: 0 20px; line-height: 1.6; color: #222; }
+    h1 { color: #1a73e8; }
+    .card { background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; margin: 20px 0; }
+    a { color: #1a73e8; text-decoration: none; }
+    footer { margin-top: 40px; font-size: 0.9em; color: #555; border-top: 1px solid #eee; padding-top: 15px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <h1>Smart Email Reply</h1>
-        <div class="sub" id="userEmail">Loading...</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span id="badge" class="pill off">Paused</span>
-        <button id="togBtn" class="ok" onclick="doToggle()">Activate</button>
-      </div>
-    </div>
+  <h1>Smart Email Reply</h1>
+  <p><strong>Smart Email Reply</strong> is an automated Gmail assistant created by Simeon that sends unread reminders at 1, 3, and 7 days, asks permission on day 10 before replying, and automatically answers VIP contacts using Google's Gemini AI.</p>
 
-    <div class="card" id="appCard" style="display:none;">
-      <h2>Pending Day-10 Approvals</h2>
-      <div id="appList"></div>
-    </div>
-
-    <div class="card">
-      <h2>1. AI &amp; Identity Settings</h2>
-      <div class="row2">
-        <div>
-          <label>Gemini API Key</label>
-          <input type="password" id="apiKey" placeholder="Paste Google AI Studio key">
-        </div>
-        <div>
-          <label>Your Name</label>
-          <input type="text" id="senderName" placeholder="Simeon">
-        </div>
-      </div>
-      <div style="margin-top:14px;">
-        <label>Reply Mode</label>
-        <select id="replyMode" onchange="showPreset()">
-          <option value="AI">Generative AI Reply (reads context &amp; matches tone)</option>
-          <option value="PRESET">Pre-Written Auto Response</option>
-        </select>
-      </div>
-      <div id="presetWrap" style="margin-top:14px;display:none;">
-        <label>Pre-Written Template</label>
-        <textarea id="presetMessage"></textarea>
-      </div>
-      <div style="margin-top:14px;">
-        <label>AI Disclosure Note (appended at bottom)</label>
-        <input type="text" id="aiDisclosure">
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>2. Reminders, Permission Day &amp; VIP Auto-Reply</h2>
-      <label>Unread Digest Reminders:</label>
-      <div class="checks">
-        <label><input type="checkbox" id="d1"> 1 Day Unread</label>
-        <label><input type="checkbox" id="d3"> 3 Days Unread</label>
-        <label><input type="checkbox" id="d7"> 7 Days Unread</label>
-      </div>
-      <div class="row2" style="margin-top:14px;">
-        <div>
-          <label>Ask Permission After (Days)</label>
-          <input type="number" id="approvalDay" min="1" max="60" value="10">
-        </div>
-        <div>
-          <label>VIP Auto-Reply Delay (Days)</label>
-          <input type="number" id="vipWaitDays" min="1" max="60" value="7">
-        </div>
-      </div>
-      <div style="margin-top:14px;">
-        <label>VIP Contacts or Domains (Auto-Reply Without Asking)</label>
-        <textarea id="vipSenders" placeholder="friend@gmail.com, @company.com"></textarea>
-      </div>
-      <div class="btns">
-        <button id="saveBtn" onclick="doSave()">Save Settings</button>
-        <button id="scanBtn" class="sec" onclick="doScan()">Run Inbox Check Now</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Activity Log</h2>
-      <ul id="logs"><li>Loading...</li></ul>
-    </div>
+  <div class="card">
+    <h3>How It Works</h3>
+    <ul>
+      <li><strong>Multi-Stage Reminders:</strong> Sends unread digest alerts after 1, 3, and 7 days.</li>
+      <li><strong>Day-10 Approval Workflow:</strong> Drafts a context-aware response and asks your permission via a 1-click approval link before sending.</li>
+      <li><strong>VIP Auto-Reply:</strong> Automatically replies to trusted contacts or domains using AI or a pre-written template.</li>
+    </ul>
   </div>
-  <div id="msg"></div>
-  <script>
-    var active = false;
-    window.onload = loadData;
 
-    function loadData() {
-      google.script.run.withSuccessHandler(draw).withFailureHandler(err).getDashboardData();
-    }
-
-    function draw(d) {
-      document.getElementById("userEmail").textContent = "Signed in as " + d.email;
-      active = d.isActive;
-      var b = document.getElementById("badge");
-      var t = document.getElementById("togBtn");
-      b.textContent = active ? "Active (Daily)" : "Paused";
-      b.className = active ? "pill on" : "pill off";
-      t.textContent = active ? "Pause" : "Activate";
-      t.className = active ? "bad" : "ok";
-
-      var s = d.settings;
-      document.getElementById("apiKey").value = s.apiKey;
-      document.getElementById("senderName").value = s.senderName;
-      document.getElementById("replyMode").value = s.replyMode;
-      document.getElementById("presetMessage").value = s.presetMessage;
-      document.getElementById("aiDisclosure").value = s.aiDisclosure;
-      document.getElementById("vipSenders").value = s.vipSenders;
-      document.getElementById("vipWaitDays").value = s.vipWaitDays;
-      document.getElementById("approvalDay").value = s.approvalDay;
-      document.getElementById("d1").checked = s.enableDay1;
-      document.getElementById("d3").checked = s.enableDay3;
-      document.getElementById("d7").checked = s.enableDay7;
-      showPreset();
-
-      var ac = document.getElementById("appCard");
-      var al = document.getElementById("appList");
-      al.innerHTML = "";
-      if (d.pendingApprovals && d.pendingApprovals.length) {
-        ac.style.display = "block";
-        d.pendingApprovals.forEach(function(item) {
-          var box = document.createElement("div");
-          box.className = "box";
-          var title = document.createElement("div");
-          title.textContent = item.subject + " (" + item.sender + ")";
-          title.style.fontWeight = "bold";
-          var pre = document.createElement("div");
-          pre.className = "preview";
-          pre.textContent = item.proposedReply;
-          var b1 = document.createElement("button");
-          b1.textContent = "Approve & Send";
-          b1.style.marginRight = "8px";
-          b1.onclick = function() { doApprove(item.threadId, item.token, true); };
-          var b2 = document.createElement("button");
-          b2.className = "sec";
-          b2.textContent = "Dismiss";
-          b2.onclick = function() { doApprove(item.threadId, item.token, false); };
-          box.appendChild(title);
-          box.appendChild(pre);
-          box.appendChild(b1);
-          box.appendChild(b2);
-          al.appendChild(box);
-        });
-      } else {
-        ac.style.display = "none";
-      }
-
-      var ul = document.getElementById("logs");
-      ul.innerHTML = "";
-      if (d.logs && d.logs.length) {
-        d.logs.forEach(function(txt) {
-          var li = document.createElement("li");
-          li.textContent = txt;
-          ul.appendChild(li);
-        });
-      } else {
-        ul.innerHTML = "<li>No activity yet.</li>";
-      }
-    }
-
-    function showPreset() {
-      var m = document.getElementById("replyMode").value;
-      document.getElementById("presetWrap").style.display = m === "PRESET" ? "block" : "none";
-    }
-
-    function doSave() {
-      var btn = document.getElementById("saveBtn");
-      btn.disabled = true;
-      google.script.run.withSuccessHandler(function(r) {
-        btn.disabled = false;
-        toast(r.message);
-        loadData();
-      }).withFailureHandler(function(e) { btn.disabled = false; err(e); }).saveUserSettings({
-        apiKey: document.getElementById("apiKey").value,
-        senderName: document.getElementById("senderName").value,
-        replyMode: document.getElementById("replyMode").value,
-        presetMessage: document.getElementById("presetMessage").value,
-        aiDisclosure: document.getElementById("aiDisclosure").value,
-        vipSenders: document.getElementById("vipSenders").value,
-        vipWaitDays: document.getElementById("vipWaitDays").value,
-        approvalDay: document.getElementById("approvalDay").value,
-        enableDay1: document.getElementById("d1").checked,
-        enableDay3: document.getElementById("d3").checked,
-        enableDay7: document.getElementById("d7").checked
-      });
-    }
-
-    function doToggle() {
-      google.script.run.withSuccessHandler(function(r) {
-        toast(r.message);
-        loadData();
-      }).withFailureHandler(err).toggleAutomation(!active);
-    }
-
-    function doScan() {
-      var btn = document.getElementById("scanBtn");
-      btn.disabled = true;
-      btn.textContent = "Scanning...";
-      google.script.run.withSuccessHandler(function(r) {
-        btn.disabled = false;
-        btn.textContent = "Run Inbox Check Now";
-        toast(r.message);
-        loadData();
-      }).withFailureHandler(function(e) {
-        btn.disabled = false;
-        btn.textContent = "Run Inbox Check Now";
-        err(e);
-      }).runManualScanNow();
-    }
-
-    function doApprove(id, tok, send) {
-      toast(send ? "Sending..." : "Dismissing...");
-      google.script.run.withSuccessHandler(function(r) {
-        toast(r.message);
-        loadData();
-      }).withFailureHandler(err).approveFromDashboard(id, tok, send);
-    }
-
-    function err(e) { toast("Error: " + e.message); }
-    function toast(t) {
-      var m = document.getElementById("msg");
-      m.textContent = t;
-      m.style.display = "block";
-      setTimeout(function() { m.style.display = "none"; }, 3500);
-    }
-  </script>
+  <footer>
+    <p><a href="privacy.html">Privacy Policy</a> | Contact: simeonvarghesethomas@gmail.com</p>
+  </footer>
 </body>
 </html>
